@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('cafe_photos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cafe_id')->constrained('cafes')->cascadeOnDelete();
+            $table->foreignUlid('cafe_id')->constrained('cafes')->cascadeOnDelete();
             $table->string('url');
             $table->boolean('is_primary')->default(false);
             $table->unsignedInteger('sort_order')->default(0);

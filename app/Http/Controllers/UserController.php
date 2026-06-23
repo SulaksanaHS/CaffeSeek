@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cafe;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,9 +24,11 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(15)->withQueryString();
+        $cafes = Cafe::select('id', 'name')->latest()->get();
 
         return Inertia::render('admin/users/index', [
             'users' => $users,
+            'cafes' => $cafes,
             'filters' => [
                 'search' => $request->input('search', ''),
             ],
@@ -75,5 +78,17 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->back()->with('success', 'User deleted successfully.');
+    }
+
+    public function assignCafe(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'owner_cafe' => 'nullable|string|exists:cafes,id',
+        ]);
+
+        $user->owner_cafe = $validated['owner_cafe'] ?? null;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Cafe berhasil ditetapkan.');
     }
 }

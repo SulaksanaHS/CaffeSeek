@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             // Menghubungkan ke tabel cafes, jika cafe dihapus maka data reservasi ikut terhapus
-            $table->foreignId('cafe_id')->constrained('cafes')->onDelete('cascade');
+            $table->foreignUlid('cafe_id')->constrained('cafes')->onDelete('cascade');
             
             $table->string('customer_name');
             $table->string('customer_whatsapp');

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('cafe_tables', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('cafe_id')->constrained()->onDelete('cascade');
+            $table->foreignUlid('cafe_id')->constrained()->onDelete('cascade');
             $table->unsignedSmallInteger('table_number'); 
             $table->unsignedSmallInteger('capacity'); 
             $table->timestamps();

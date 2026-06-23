@@ -64,7 +64,9 @@ test('user can delete their account', function () {
         ->assertRedirect('/');
 
     $this->assertGuest();
-    expect($user->fresh())->toBeNull();
+    // User uses SoftDeletes, so fresh() returns the model with deleted_at set
+    expect($user->fresh())->not->toBeNull();
+    expect($user->fresh()->deleted_at)->not->toBeNull();
 });
 
 test('correct password must be provided to delete account', function () {

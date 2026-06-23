@@ -3,20 +3,27 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coffee, Utensils, Sofa, Users, TrendingUp, MapPin, Store } from "lucide-react";
+import { Coffee, Utensils, Sofa, Users, TrendingUp, MapPin, Store, Receipt } from "lucide-react";
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale'; 
 import { BreadcrumbItem } from '@/types';
-import { Cafe } from '@/types/cafes';
+import { Cafe, CafePhoto } from '@/types/cafes';
 import AnalyticsChart from "@/components/AnalyticsChart";
 
 interface Props {
   cafes: Cafe[];
-  facilities: Facilities;
-  totalUsers: number;
   chartData: { month: string; total: number }[];
+  stats: {
+    total_reservations?: number;
+    net_revenue?: number;
+    upcoming_reservations?: number;
+    total_cafes?: number;
+    total_users?: number;
+    total_transactions?: number;
+    platform_revenue?: number;
+  };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,21 +39,33 @@ const getPrimaryPhotoUrl = (photos: CafePhoto[] = []): string => {
     return primary?.url || photos[0]?.url || PLACEHOLDER_IMAGE;
 };
 
-const AdminDashboard: React.FC<Props> = ({ cafes = [], chartData = []}) => {
-  const totalCafes = cafes.length;
-  const totalTables = cafes.reduce((acc, cafe) => acc + (cafe.tables?.length || 0), 0);
-  const totalMenus = cafes.reduce((acc, cafe) => acc + (cafe.menus?.length || 0), 0);
-  const totalMeetingRooms = cafes.filter(c => c.facilities?.meeting_room?.available).length;
-  
-  const kpiData = [
-    { title: "Total Caffe & Resto", value: totalCafes, icon: Store, color: "text-blue-600", bg: "bg-blue-50", subtitle: "Entitas yang Dikelola" },
-    { title: "Total Meja", value: totalTables, icon: Sofa, color: "text-yellow-600", bg: "bg-yellow-50", subtitle: `${totalMeetingRooms} Ruang Meeting` },
-    { title: "Total Menu", value: totalMenus, icon: Utensils, color: "text-green-600", bg: "bg-green-50", subtitle: "Item di semua kafe" },
-    { title: "Total Pengguna", value: totalCafes, icon: Users, color: "text-purple-600", bg: "bg-purple-50", subtitle: "Pengguna terdaftar" },
-  ];
+const AdminDashboard: React.FC<Props> = ({ cafes = [], chartData = [], stats }) => {
+  const { auth } = usePage<any>().props;
+  const isMitra = auth?.user?.role === 'mitra';
+
+  let kpiData: any[] = [];
+
+  const formatCurrency = (amount: number = 0) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+  };
+
+  if (isMitra) {
+    kpiData = [
+      { title: "Total Reservasi", value: stats?.total_reservations || 0, icon: Receipt, color: "text-blue-600", bg: "bg-blue-50", subtitle: "Sepanjang waktu" },
+      { title: "Pendapatan Bersih", value: formatCurrency(stats?.net_revenue || 0), icon: TrendingUp, color: "text-green-600", bg: "bg-green-50", subtitle: "Setelah platform fee" },
+      { title: "Reservasi Aktif/Mendatang", value: stats?.upcoming_reservations || 0, icon: Users, color: "text-yellow-600", bg: "bg-yellow-50", subtitle: "Status sudah dibayar" },
+    ];
+  } else {
+    kpiData = [
+      { title: "Total Caffe & Resto", value: stats?.total_cafes || 0, icon: Store, color: "text-blue-600", bg: "bg-blue-50", subtitle: "Entitas yang Dikelola" },
+      { title: "Total Pengguna", value: stats?.total_users || 0, icon: Users, color: "text-purple-600", bg: "bg-purple-50", subtitle: "Pengguna terdaftar" },
+      { title: "Total Transaksi Reservasi", value: stats?.total_transactions || 0, icon: Receipt, color: "text-green-600", bg: "bg-green-50", subtitle: "Seluruh sistem" },
+      { title: "Pendapatan Platform", value: formatCurrency(stats?.platform_revenue || 0), icon: TrendingUp, color: "text-yellow-600", bg: "bg-yellow-50", subtitle: "10% Platform fee" },
+    ];
+  }
 
   const latestCafes = cafes
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 5);
 
   const facilityLabels: Record<string, string> = {
@@ -110,7 +129,7 @@ const AdminDashboard: React.FC<Props> = ({ cafes = [], chartData = []}) => {
             
             <Card className="lg:col-span-2">
                 <CardHeader>
-                    <CardTitle>Overview Caffe & Resto</CardTitle>
+                    <CardTitle>{isMitra ? "Grafik Transaksi Reservasi (Tahun Ini)" : "Grafik Pertumbuhan Transaksi Keseluruhan (Tahun Ini)"}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <AnalyticsChart data={chartData} />

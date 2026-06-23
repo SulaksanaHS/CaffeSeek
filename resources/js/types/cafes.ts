@@ -1,10 +1,10 @@
-interface CafePhoto {
+export interface CafePhoto {
     id: number;
     url: string;
     is_primary: boolean;
 }
 
-interface CafeMenu {
+export interface CafeMenu {
     id?: number;
     name: string;
     category: string;
@@ -12,7 +12,7 @@ interface CafeMenu {
     photo_url?: string | null;
 }
 
-interface Facilities {
+export interface Facilities {
     colokan: boolean;
     wifi: boolean;
     indoor: boolean;
@@ -24,13 +24,13 @@ interface Facilities {
     };
 }
 
-interface CafeTable {
+export interface CafeTable {
     id?: number;
     table_number: number | '';
     capacity: number | '';  
 }
 
-interface OperationalHours {
+export interface OperationalHours {
     monday: string;
     tuesday: string;
     wednesday: string;
@@ -40,7 +40,7 @@ interface OperationalHours {
     sunday: string;
 }
 
-interface Cafe {
+export interface Cafe {
     id: number;
     name: string;
     kategori: string;
@@ -54,6 +54,8 @@ interface Cafe {
     photos: CafePhoto[];
     menus: CafeMenu[];
     tables: CafeTable[];
+    created_at?: string;
+    updated_at?: string;
 }
 
 interface CafeMenuForm {

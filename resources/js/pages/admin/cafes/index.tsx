@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Check, ImageIcon, MapPin, Plus, PlusIcon, SearchIcon, UploadIcon, XIcon, Sofa} from 'lucide-react';
 import { ChangeEvent, DragEvent, useEffect, useState } from 'react';
 
@@ -201,6 +201,9 @@ const revokePreviews = (items: UploadPreview[]) => {
 };
 
 export default function CafesIndex({ cafes, filters, pagination }: Props) {
+    const { auth } = usePage<any>().props;
+    const isMitra = auth?.user?.role === 'mitra';
+
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [selectedFacilities, setSelectedFacilities] = useState<string[]>(filters.facilities || []);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -240,7 +243,7 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                 search: searchTerm || undefined,
                 facilities: selectedFacilities,
             },
-            { replacement: true, preserveScroll: true }
+            { replace: true, preserveScroll: true }
         );
     };
 
@@ -1060,9 +1063,10 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                         {selectedCafe.maps_embed_url && (
                             <div className="space-y-2">
                                 <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-1">Maps</h4>
-                                <div className="w-full aspect-video rounded-lg overflow-hidden border">
+                                <div className="w-full aspect-video rounded-lg overflow-hidden border relative">
+                                    {/* Tambahan class untuk memaksa iframe responsive dan mencegah scroll jank */}
                                     <div 
-                                        className="w-sm"
+                                        className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
                                         dangerouslySetInnerHTML={{ __html: selectedCafe.maps_embed_url }}
                                     />
                                 </div>
@@ -1120,6 +1124,8 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                                             src={photo.url}
                                             alt={selectedCafe.name}
                                             className="h-40 w-full rounded-lg object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ))}
                                 </div>
@@ -1129,7 +1135,7 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                         {selectedCafe.video_url && (
                             <div>
                                 <h4 className="text-sm font-semibold text-muted-foreground">Promo Video</h4>
-                                <video controls src={selectedCafe.video_url} className="mt-3 w-full rounded-lg" />
+                                <video controls src={selectedCafe.video_url} className="mt-3 w-full rounded-lg" preload="none" />
                             </div>
                         )}
 
@@ -1145,6 +1151,8 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                                                         src={menu.photo_url}
                                                         alt={menu.name}
                                                         className="h-16 w-16 rounded object-cover"
+                                                        loading="lazy"
+                                                        decoding="async"
                                                     />
                                                 ) : (
                                                     <div className="flex h-16 w-16 items-center justify-center rounded bg-muted">
@@ -1177,48 +1185,52 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
                         <h1 className="text-2xl font-semibold">Manajemen Caffe & Resto</h1>
                         <p className="text-muted-foreground">Kelola katalog Caffe & Resto Anda</p>
                     </div>
-                    <div className="flex gap-2">
-                        <Button onClick={openCreateModal} className='cursor-pointer'>
-                            <PlusIcon/>
-                            Add Caffe & Resto
-                        </Button>
-                    </div>
+                    {!isMitra && (
+                        <div className="flex gap-2">
+                            <Button onClick={openCreateModal} className='cursor-pointer'>
+                                <PlusIcon/>
+                                Add Caffe & Resto
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
-                <Card>
-                    <CardContent className="space-y-4">
-                        <div className="grid gap-4 flex justify-center items-center">
-                            <div className="relative max-w-xl ">
-                                <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
-                                <Input
-                                    placeholder="Search by name or location..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+                {!isMitra && (
+                    <Card>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-4 flex justify-center items-center">
+                                <div className="relative max-w-xl ">
+                                    <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search by name or location..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
 
-                            <div className="flex flex-wrap items-center gap-2">
-                                {facilityOptions.map((facility) => {
-                                    const isActive = selectedFacilities.includes(facility.key);
-                                    return (
-                                        <Button
-                                            key={facility.key}
-                                            type="button"
-                                            variant={isActive ? 'default' : 'outline'}
-                                            size="sm"
-                                            onClick={() => handleFacilityFilterToggle(facility.key)}
-                                            className='cursor-pointer'
-                                        >
-                                            {isActive && <Check className="mr-2 h-4 w-4" />}
-                                            {facility.label}
-                                        </Button>
-                                    );
-                                })}
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {facilityOptions.map((facility) => {
+                                        const isActive = selectedFacilities.includes(facility.key);
+                                        return (
+                                            <Button
+                                                key={facility.key}
+                                                type="button"
+                                                variant={isActive ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => handleFacilityFilterToggle(facility.key)}
+                                                className='cursor-pointer'
+                                            >
+                                                {isActive && <Check className="mr-2 h-4 w-4" />}
+                                                {facility.label}
+                                            </Button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                )}
 
                 <Card>
                     <CardContent>

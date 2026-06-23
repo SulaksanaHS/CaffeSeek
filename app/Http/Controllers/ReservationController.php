@@ -114,7 +114,13 @@ class ReservationController extends Controller
      */
     public function adminIndex()
     {
-        $reservations = Reservation::with(['cafe', 'items'])->latest()->paginate(10);
+        $query = Reservation::with(['cafe', 'items']);
+        
+        if (auth()->user()->role === 'mitra') {
+            $query->where('cafe_id', auth()->user()->owner_cafe);
+        }
+
+        $reservations = $query->latest()->paginate(10);
 
         return Inertia::render('admin/reservations/index', [
             'reservations' => $reservations
@@ -148,17 +154,22 @@ class ReservationController extends Controller
         $year = $request->input('year', date('Y'));
 
         // Query: Ambil semua kafe, hitung jumlah transaksi dan total uangnya
-        $reports = Cafe::withCount(['reservations' => function ($query) use ($month, $year) {
-                $query->whereIn('status', ['paid', 'completed'])
+        $query = Cafe::withCount(['reservations' => function ($q) use ($month, $year) {
+                $q->whereIn('status', ['paid', 'completed'])
                       ->whereMonth('reservation_date', $month)
                       ->whereYear('reservation_date', $year);
             }])
-            ->withSum(['reservations as total_revenue' => function ($query) use ($month, $year) {
-                $query->whereIn('status', ['paid', 'completed'])
+            ->withSum(['reservations as total_revenue' => function ($q) use ($month, $year) {
+                $q->whereIn('status', ['paid', 'completed'])
                       ->whereMonth('reservation_date', $month)
                       ->whereYear('reservation_date', $year);
-            }], 'total_price')
-            ->get()
+            }], 'total_price');
+
+        if (auth()->user()->role === 'mitra') {
+            $query->where('id', auth()->user()->owner_cafe);
+        }
+
+        $reports = $query->get()
             ->map(function ($cafe) {
                 // Perhitungan Model Bisnis (Platform Fee 10%)
                 $gross = $cafe->total_revenue ?? 0;

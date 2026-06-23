@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,8 +12,12 @@ class Cafe extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use HasUlids;
 
-    protected $guarded = ['id', 'created_at', 'updated_at'];
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $guarded = ['created_at', 'updated_at'];
 
     protected $casts = [
         'operational_hours' => 'array',

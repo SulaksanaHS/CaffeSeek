@@ -15,7 +15,12 @@ class CafeController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = Cafe::with(['photos', 'menus', 'tables']); 
+
+        if ($user->role === 'mitra') {
+            $query->where('id', $user->owner_cafe);
+        }
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -99,6 +104,10 @@ class CafeController extends Controller
 
     public function update(Request $request, Cafe $cafe)
     {
+        if (auth()->user()->role === 'mitra' && auth()->user()->owner_cafe !== $cafe->id) {
+            abort(403, 'Unauthorized access to this cafe.');
+        }
+
         $validated = $this->validateCafe($request, $cafe->id);
 
         DB::transaction(function () use ($request, $cafe) {
@@ -123,6 +132,10 @@ class CafeController extends Controller
 
     public function destroy(Cafe $cafe)
     {
+        if (auth()->user()->role === 'mitra' && auth()->user()->owner_cafe !== $cafe->id) {
+            abort(403, 'Unauthorized access to this cafe.');
+        }
+
         $cafe->delete();
         return redirect()->route('cafes.index')->with('success', 'Caffe & Resto removed.');
     }

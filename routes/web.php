@@ -23,7 +23,10 @@ Route::get('/pricing', function () {
 Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('cafes', CafeController::class);
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserController::class)->middleware('role:admin');
+    Route::patch('users/{user}/assign-cafe', [UserController::class, 'assignCafe'])
+        ->name('admin.users.assignCafe')
+        ->middleware('role:admin');
     
     // Route untuk Admin (List Transaksi & Verifikasi)
     Route::get('reservations', [ReservationController::class, 'adminIndex'])->name('admin.reservations.index');
