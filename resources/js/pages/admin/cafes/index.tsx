@@ -1043,7 +1043,7 @@ export default function CafesIndex({ cafes, filters, pagination }: Props) {
 
         return (
             <Dialog open={isDetailModalOpen} onOpenChange={handleDetailModalChange}>
-                <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+                <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto overscroll-contain">
                     <DialogHeader>
                         <DialogTitle>{selectedCafe.name}</DialogTitle>
                         <DialogTitle>{selectedCafe.kategori}</DialogTitle>
