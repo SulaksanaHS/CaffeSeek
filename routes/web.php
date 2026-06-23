@@ -4,6 +4,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CafeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,6 +23,7 @@ Route::get('/pricing', function () {
 Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('cafes', CafeController::class);
+    Route::resource('users', UserController::class);
     
     // Route untuk Admin (List Transaksi & Verifikasi)
     Route::get('reservations', [ReservationController::class, 'adminIndex'])->name('admin.reservations.index');
