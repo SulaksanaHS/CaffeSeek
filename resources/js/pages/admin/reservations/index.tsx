@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
-import { CheckCircle, ExternalLink, MessageCircle, XCircle } from 'lucide-react';
+import { CheckCircle, ExternalLink, Mail, MessageCircle, XCircle } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 
 // Definisi Interface
@@ -19,6 +19,7 @@ interface ReservationItem {
 interface Reservation {
     id: number;
     customer_name: string;
+    customer_email: string | null;
     customer_whatsapp: string;
     reservation_date: string;
     total_price: string;
@@ -117,11 +118,16 @@ export default function AdminReservationsIndex({ reservations }: { reservations:
                                 ) : (
                                     data.map((res) => (
                                         <TableRow key={res.id}>
-                                            <TableCell className="pl-6 font-mono font-medium">INV-{res.id}</TableCell>
-                                            <TableCell>
-                                                <p className="font-semibold">{res.customer_name}</p>
-                                                <p className="text-xs text-gray-500">{res.customer_whatsapp}</p>
-                                            </TableCell>
+                                             <TableCell className="pl-6 font-mono font-medium">INV-{res.id}</TableCell>
+                                             <TableCell>
+                                                 <p className="font-semibold">{res.customer_name}</p>
+                                                 {res.customer_email && (
+                                                     <p className="text-xs text-blue-500 flex items-center gap-1">
+                                                         <Mail className="h-3 w-3" />{res.customer_email}
+                                                     </p>
+                                                 )}
+                                                 <p className="text-xs text-gray-500">{res.customer_whatsapp}</p>
+                                             </TableCell>
                                             <TableCell className="font-medium text-[#9AA05B]">{res.cafe.name}</TableCell>
                                             <TableCell className="font-bold">
                                                 {currencyFormatter.format(Number(res.total_price))}
@@ -150,7 +156,8 @@ export default function AdminReservationsIndex({ reservations }: { reservations:
                                                             onClick={() => handleVerifyAndNotify(res)}
                                                             className="bg-black hover:bg-gray-800 text-[#BDEE63] cursor-pointer"
                                                         >
-                                                            <CheckCircle className="h-4 w-4 mr-1" /> ACC & Kabari Mitra
+                                                            <CheckCircle className="h-4 w-4 mr-1" /> ACC & Kirim Invoice
+                                                            {res.customer_email && <Mail className="h-3 w-3 ml-1 opacity-70" />}
                                                         </Button>
                                                         <Button 
                                                             variant="destructive" 

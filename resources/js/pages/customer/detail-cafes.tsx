@@ -105,6 +105,7 @@ export default function DetailCafes({ cafe }: { cafe: CafeDetail }) {
     const [showCart, setShowCart] = useState(false);
 
     const [customerName, setCustomerName] = useState("");
+    const [customerEmail, setCustomerEmail] = useState("");
     const [customerWhatsapp, setCustomerWhatsapp] = useState("");
     const [reservationDate, setReservationDate] = useState("");
     const [reservationTime, setReservationTime] = useState("");
@@ -269,9 +270,9 @@ export default function DetailCafes({ cafe }: { cafe: CafeDetail }) {
         }
         const hasMeetingRoom = cart.some((i) => i.type === "meeting_room");
 
-        if (!customerName || !customerWhatsapp || !reservationDate) {
+        if (!customerName || !customerEmail || !customerWhatsapp || !reservationDate) {
             toast.error("Validasi Gagal", {
-                description: "Lengkapi Data Diri: Nama, WhatsApp, dan Tanggal Reservasi.",
+                description: "Lengkapi Data Diri: Nama, Email, WhatsApp, dan Tanggal Reservasi.",
             });
             return;
         }
@@ -294,6 +295,7 @@ export default function DetailCafes({ cafe }: { cafe: CafeDetail }) {
         router.post('/reservations', {
             cafe_id: cafe.id,
             customer_name: customerName,
+            customer_email: customerEmail,
             customer_whatsapp: customerWhatsapp,
             reservation_date: reservationDate,
             cart_items: cart.map(item => ({
@@ -435,6 +437,13 @@ export default function DetailCafes({ cafe }: { cafe: CafeDetail }) {
                             className="w-full border rounded-xl p-3 placeholder-black/50 text-black"
                         />
                         <input
+                            type="email"
+                            placeholder="Alamat Email (untuk invoice)"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                            className="w-full border rounded-xl p-3 placeholder-black/50 text-black"
+                        />
+                        <input
                             type="text"
                             placeholder="Nomor WhatsApp"
                             value={customerWhatsapp}
@@ -479,7 +488,7 @@ export default function DetailCafes({ cafe }: { cafe: CafeDetail }) {
                         onClick={() => checkoutToWhatsapp()}
                         className="w-full mt-6 rounded-full bg-[#BDEE63] hover:bg-[#333333] px-6 py-3 font-bold text-black hover:text-white cursor-pointer"
                     >
-                        Reservasi via WhatsApp
+                        Reservasi Sekarang
                     </button>
 
                     <button

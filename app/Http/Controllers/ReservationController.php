@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ReservationInvoiceMail;
 use App\Models\Cafe;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -20,6 +22,7 @@ class ReservationController extends Controller
         $request->validate([
             'cafe_id' => 'required|exists:cafes,id',
             'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
             'customer_whatsapp' => 'required|string|max:20',
             'reservation_date' => 'required|date',
             'cart_items' => 'required|array|min:1',
@@ -41,6 +44,7 @@ class ReservationController extends Controller
             $reservation = Reservation::create([
                 'cafe_id' => $request->cafe_id,
                 'customer_name' => $request->customer_name,
+                'customer_email' => $request->customer_email,
                 'customer_whatsapp' => $request->customer_whatsapp,
                 'reservation_date' => $request->reservation_date,
                 'status' => 'pending',
@@ -136,10 +140,15 @@ class ReservationController extends Controller
             'status' => 'required|in:pending,paid,completed,cancelled',
         ]);
 
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::with(['cafe', 'items'])->findOrFail($id);
         $reservation->update([
             'status' => $request->status,
         ]);
+
+        // Kirim email invoice ke customer saat admin menyetujui pembayaran
+        if ($request->status === 'completed' && $reservation->customer_email) {
+            Mail::to($reservation->customer_email)->send(new ReservationInvoiceMail($reservation));
+        }
 
         return back()->with('success', 'Status reservasi berhasil diperbarui.');
     }
